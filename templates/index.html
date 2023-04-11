@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/index.min.js"></script>
+</head>
+<body>
+    <input type="text" placeholder="Enter your message" id="message">
+    <button id="submit">Submit</button>
+
+    <div id="res"></div>
+
+    <script>
+        const input = document.getElementById('message');
+        const button = document.getElementById('submit');
+        const result = document.getElementById('res');
+
+        let X = null
+        let Y = null
+
+
+
+        button.addEventListener('click', async () => {
+            const message = input.value;
+            const response = await fetch('/api/get_primes')
+            const data = await response.json();
+            X = data.X;
+            Y = data.Y;
+
+            console.log(X, Y)
+
+            const A = Math.floor(Math.random() * 10) + 1;
+            const A_public = Math.pow(X, A) % Y;
+
+            console.log(A, A_public)
+
+            const response2 = await fetch('/api/public_key_exchange', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    A_public_key: A_public
+                })
+            })
+            const data2 = await response2.json();
+            const B_public = data2.B_public_key;
+
+            console.log(`B_public: ${B_public}`)
+
+            const secret_key = Math.pow(B_public, A) % Y;
+            result.innerHTML = `SECRET KEY: ${secret_key}`
+            /*CryptoJS.AES.encrypt(message, secret_key).toString();*/
+        });
+    </script>
+</body>
+</html>
